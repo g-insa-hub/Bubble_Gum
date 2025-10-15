@@ -1,14 +1,196 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ko">
   <head>
-    <script src="p5.js"></script>
-    <script src="ml5.min.js"></script>
-    <link rel="stylesheet" type="text/css" href="style.css" />
     <meta charset="utf-8" />
+    <title>Bubblegum</title>
+    <script src="p5.min.js"></script>
+    <script src="ml5.min.js"></script>
+
+    <style>
+      body {
+        margin: 0;
+        background: radial-gradient(circle at center, #111 40%, #000 100%);
+        display: flex;
+        justify-content: flex-start;
+        align-items: center;
+        height: 100vh;
+        color: #f5f5f5;
+        font-family: "Noto Sans KR", sans-serif;
+        overflow: hidden;
+        gap: 100px; /* ✅ TV와 안내문 사이 간격 확보 */
+        padding-left: 50px;
+      }
+
+      /* 📺 TV 프레임 */
+      .tv-frame {
+        position: relative;
+        width: 1400px;
+        height: 850px;
+        background: #3a2e22;
+        border: 14px solid #2b1f15;
+        border-radius: 28px;
+        box-shadow: inset 0 0 28px rgba(0, 0, 0, 0.8),
+                    0 7px 21px rgba(0, 0, 0, 0.7);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+
+      .tv-screen {
+        position: relative;
+        width: 1280px;
+        height: 720px;
+        background: black;
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: inset 0 0 30px #000;
+      }
+
+      /* 🎛️ TV 버튼 */
+      .tv-controls {
+        position: absolute;
+        right: -90px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 80px;
+        height: 400px;
+        background: #2a1f14;
+        border-left: 6px solid #1a120c;
+        border-radius: 8px;
+        box-shadow: inset -3px 0 5px rgba(0, 0, 0, 0.6);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: space-around;
+        padding: 15px 0;
+      }
+
+      .tv-knob, .tv-button {
+        cursor: default;
+      }
+
+      .tv-knob {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background: radial-gradient(circle at 30% 30%, #c9c9c9, #666);
+        border: 4px solid #222;
+      }
+
+      .tv-button {
+        width: 40px;
+        height: 20px;
+        border-radius: 10px;
+        background: linear-gradient(to bottom, #555, #111);
+        border: 2px solid #000;
+      }
+
+      .tv-led {
+        width: 15px;
+        height: 15px;
+        border-radius: 50%;
+        background: red;
+        box-shadow: 0 0 10px red;
+      }
+
+      /* 📘 안내 박스 */
+      .info-panel {
+        padding: 20px;
+        max-width: 260px; /* ✅ 더 좁게 */
+        background: rgba(255, 255, 255, 0.05);
+        border-left: 2px solid rgba(255, 255, 255, 0.2);
+        border-radius: 8px;
+        box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+        height: 80vh;
+        overflow-y: auto;
+        transition: max-height 0.5s ease, opacity 0.5s ease;
+      }
+
+      .info-panel.hidden {
+        max-height: 0;
+        opacity: 0;
+        overflow: hidden;
+        padding: 0;
+      }
+
+      .toggle-btn {
+        position: absolute;
+        right: 40px;
+        top: 40px;
+        background: #ffcc66;
+        color: #000;
+        border: none;
+        border-radius: 20px;
+        padding: 10px 18px;
+        font-weight: bold;
+        cursor: pointer;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.4);
+        z-index: 10;
+      }
+
+      .info-panel h1 {
+        font-size: 20px;
+        color: #ffcc66;
+        margin-top: 0;
+      }
+
+
+      .info-panel h3 {
+        font-size: 17px;
+        color: #fcfbfb;
+        margin-top: 0;
+      }
+
+
+      .info-panel p,
+      .info-panel li {
+        font-size: 17px;
+        line-height: 1.6;
+        color: #ddd;
+      }
+    </style>
   </head>
+
   <body>
-    <main></main>
-    <script src="extra.js"></script>
-    <script src="sketch.js"></script>
+    <!-- 📺 TV -->
+    <div class="tv-frame">
+      <div class="tv-screen">
+        <main></main>
+      </div>
+      <div class="tv-controls">
+        <div class="tv-led"></div>
+        <div class="tv-knob"></div>
+        <div class="tv-knob"></div>
+        <div class="tv-button"></div>
+        <div class="tv-button"></div>
+      </div>
+    </div>
+
+    <!-- 📘 체험 안내 -->
+    <div class="info-panel" id="guidePanel">
+      <h1>인공지능 비전 풍선껌 체험 방법</h1>
+      <h3>
+        웹캠을 통해 얼굴을 인식하고, 입 모양에 따라 풍선껌을 불 수 있는
+        재미있는 체험입니다.<br />최대 2명의 얼굴을 동시에 인식합니다.
+      </h3>
+      <ul>
+      
+        <li>카메라 접근 권한을<br /> 허용해주세요.</li>
+        <li>입을 오므리고 불면<br /> 풍선이 커집니다.</li>
+        <li>너무 커지면 “펑!”<br /> 소리와 함께 터집니다.</li>
+        <li>사람이 사라지거나<br /> 손으로 입을 가리면<br /> 처음 상태로 돌아갑니다.</li>
+      </ul>
+    </div>
+
+    <button class="toggle-btn" onclick="toggleGuide()">안내 열기 / 닫기</button>
+    <audio id="popSound" src="pop.mp3" preload="auto"></audio>
+
+    <script>
+      function toggleGuide() {
+        document.getElementById("guidePanel").classList.toggle("hidden");
+      }
+    </script>
+
+    <script src="code.js"></script>
   </body>
 </html>

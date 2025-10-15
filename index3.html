@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <title>Retro TV Bubblegum</title>
+    <script src="p5.js"></script>
+    <script src="ml5.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="style.css" />
+
+    <style>
+      body {
+        margin: 0;
+        background: radial-gradient(circle at center, #111 40%, #000 100%);
+        display: flex;
+        justify-content: flex-start; /* 왼쪽 정렬 */
+        align-items: center;
+        height: 100vh;
+        color: #f5f5f5;
+        font-family: "Noto Sans KR", sans-serif;
+      }
+
+      /* 📺 TV 프레임 */
+      .tv-frame {
+        position: relative;
+        width: 1400px;
+        height: 850px;
+        background: #3a2e22;
+        border: 20px solid #2b1f15; /* 테두리 두께 */
+        border-radius: 40px;
+        box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.8),
+                    0 10px 30px rgba(0, 0, 0, 0.7);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin-left: 40px; /* 살짝 여백 */
+      }
+
+      /* 📺 화면 영역 */
+      .tv-screen {
+        position: relative;
+        width: 1280px;
+        height: 720px;
+        background: black;
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: inset 0 0 30px #000;
+      }
+
+      /* 💡 반사광 */
+      .tv-glass::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(
+          135deg,
+          rgba(255, 255, 255, 0.05),
+          rgba(255, 255, 255, 0) 50%
+        );
+        pointer-events: none;
+      }
+
+      /* 🎛️ TV 조작부 */
+      .tv-controls {
+        position: absolute;
+        right: -120px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 100px;
+        height: 500px;
+        background: #2a1f14;
+        border-left: 8px solid #1a120c;
+        border-radius: 10px;
+        box-shadow: inset -4px 0 6px rgba(0, 0, 0, 0.6);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: space-around;
+        padding: 20px 0;
+      }
+
+      .tv-knob {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background: radial-gradient(circle at 30% 30%, #c9c9c9, #666);
+        border: 4px solid #222;
+        box-shadow: inset 2px 2px 4px rgba(255, 255, 255, 0.4),
+                    0 2px 4px rgba(0, 0, 0, 0.6);
+        cursor: pointer;
+      }
+
+      .tv-button {
+        width: 40px;
+        height: 20px;
+        border-radius: 10px;
+        background: linear-gradient(to bottom, #555, #111);
+        border: 2px solid #000;
+        box-shadow: inset 0 2px 2px rgba(255, 255, 255, 0.2);
+        cursor: pointer;
+      }
+
+      .tv-led {
+        width: 15px;
+        height: 15px;
+        border-radius: 50%;
+        background: red;
+        box-shadow: 0 0 10px red;
+      }
+
+      /* 📘 오른쪽 설명서 영역 */
+      .info-panel {
+        flex: 1;
+        margin-left: 40px;
+        padding: 30px;
+        max-width: 500px;
+        background: rgba(255, 255, 255, 0.05);
+        border-left: 2px solid rgba(255, 255, 255, 0.2);
+        border-radius: 10px;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+      }
+
+      .info-panel h1 {
+        font-size: 28px;
+        margin-top: 0;
+        color: #ffcc66;
+      }
+
+      .info-panel h2 {
+        font-size: 20px;
+        color: #f2f2f2;
+        margin-top: 25px;
+        margin-bottom: 10px;
+      }
+
+      .info-panel p {
+        line-height: 1.7;
+        font-size: 16px;
+        color: #e0e0e0;
+      }
+
+      .info-panel li {
+        margin-bottom: 6px;
+      }
+    </style>
+  </head>
+
+  <body>
+    <!-- 📺 TV 프레임 -->
+    <div class="tv-frame">
+      <div class="tv-screen tv-glass">
+        <main></main>
+      </div>
+
+      <div class="tv-controls">
+        <div class="tv-led"></div>
+        <div class="tv-knob"></div>
+        <div class="tv-knob"></div>
+        <div class="tv-button"></div>
+        <div class="tv-button"></div>
+      </div>
+    </div>
+
+    <!-- 📘 오른쪽 설명 영역 -->
+    <div class="info-panel">
+      <h1>Retro TV 풍선껌 체험 안내</h1>
+      <p>
+        웹캠을 통해 얼굴을 인식하고, 입 모양에 따라 풍선껌을 불 수 있는
+        재미있는 인터랙티브 체험입니다.<br />
+        최대 2명의 얼굴을 동시에 인식할 수 있습니다.
+      </p>
+
+      <h2>사용 방법</h2>
+      <ul>
+        <li>카메라 접근 권한을 허용해주세요.</li>
+        <li>화면 속에서 입을 오므리고 불면 풍선이 커집니다.</li>
+        <li>풍선이 너무 커지면 "펑!" 하고 터집니다.</li>
+        <li>두 명이 동시에 참여할 수 있습니다.</li>
+      </ul>
+
+      <h2>Tip</h2>
+      <p>
+        조명 밝은 곳에서 카메라를 바라보면 얼굴 인식이 더 잘 됩니다.<br />
+        <em>※ Chrome 브라우저를 권장합니다.</em>
+      </p>
+    </div>
+
+    <script src="extra.js"></script>
+    <script src="sketch.js"></script>
+  </body>
+</html>
